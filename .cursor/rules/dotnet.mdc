@@ -1,0 +1,104 @@
+---
+description: C# conventions — DI ctor, init data, composition helpers
+globs: **/*.cs
+alwaysApply: true
+---
+
+# C# & .NET Engineering Standards
+
+## 1. Core Object-Oriented Principles
+- Write clean, SOLID, and DRY C# code.
+- Strictly adhere to the Single Responsibility Principle (SRP). Every class and method must do exactly one thing.
+- Never write monolithic or "god" functions. 
+
+## 2. Code Structure & Refactoring
+- Keep methods short (under 20-30 lines). 
+- If a method grows large or handles multiple levels of abstraction, immediately extract the logic into well-named private helper methods or separate services.
+- Always design for reusability. Identify common logic and abstract it appropriately (interfaces, base classes, or shared utilities).
+- Avoid deep nesting. Use early returns (Guard Clauses) to handle edge cases at the top of the method.
+
+## 3. C# Specifics
+- Prefer Composition over Inheritance.
+- Use modern C# features thoughtfully (e.g., records for immutable data, pattern matching).
+- Use Dependency Injection for all external dependencies and business logic services.
+
+## Constructors: DI only
+
+**Do not declare constructors** on data-only types — no explicit ctors, no positional `record` primary constructors.
+
+Applies to:
+
+- DTOs, request/response models
+- Domain entities, aggregates, and value objects
+- API response bodies, telemetry snapshots, configuration DTOs
+
+Data types use **`required` + `init` properties** (or optional `init` where appropriate). Populate them with object initializers from **composition helper methods** or serializers — not via instance constructors.
+
+**Constructors are for DI only** — services, handlers, repositories, `BackgroundService`, and types registered in `IServiceCollection`.
+
+Do **not** use on data types:
+
+- Imperative `public Foo(T x) { X = x; }`
+- Positional `record` primary constructors
+- Primary constructors on data `class` types
+- `static Create` factories on domain types unless there is a domain-specific reason (prefer composition helpers in the application layer)
+
+## Object construction composition (all layers)
+
+Whenever you assemble an object (domain, DTO, HTTP body, options snapshot, etc.), **do not inline large `new Type { ... }` blocks** in public entry points (`FromDto`, endpoint handlers, `Program.cs`, service methods).
+
+Instead:
+
+- Split into **one helper per constructed type** — private methods on the same class, or an `internal static` composition type in the feature folder (e.g. `VehicleTelemetryComposition`, `TelemetryEndpointResponses`)
+- The entry point **orchestrates only** — calls helpers, returns the result
+- Each helper owns a single object initializer (or single responsibility) for that type
+- Applies in **mappers, endpoints, minimal APIs, services, background jobs, and startup** — not mappers alone
+- Keep domain types free of DTO/API references
+
+```csharp
+// ✅ Endpoint — orchestrates
+private static IResult IngestTelemetryAsync(VehicleTelemetryIngestDto dto)
+{
+    _ = VehicleTelemetryMapper.FromDto(dto);
+    return Results.Accepted(value: TelemetryEndpointResponses.CreateIngestAccepted(dto));
+}
+
+// ✅ Shared composition (mapper, endpoint, service can call)
+internal static EngineHealth CreateEngineHealth(EngineTelemetryDto dto) =>
+    new() { Rpm = dto.Rpm, CoolantTempC = dto.CoolantTempC, ... };
+
+// ❌ Inline nested construction in handler
+return Results.Accepted(value: new { vehicleId = dto.VehicleId, ... });
+// ❌ Inline domain graph in one method
+var t = new VehicleTelemetry { Gps = new GpsReading { ... }, Engine = new EngineHealth { ... } };
+```
+
+## DI types
+
+- Constructor injection on service types only
+- Register in `Program.cs` / `IServiceCollection` — not `new` for services in application code
+
+
+# Observability & OpenTelemetry (O11y)
+Whenever implementing new services, processing pipelines, or external integrations, you MUST include native .NET OpenTelemetry instrumentation (`System.Diagnostics`). 
+
+Adhere to the following instrumentation rules:
+
+1. **Metrics (Throughput, Latency, Errors):**
+   - Use `System.Diagnostics.Metrics.Meter` to track application performance.
+   - **Throughput:** Always implement a `Counter<T>` (e.g., `messages.processed.count`, `bytes.ingested`) to measure ingestion and processing rates.
+   - **Latency:** Always implement a `Histogram<T>` (e.g., `processing.duration.milliseconds`) to measure execution time of critical paths.
+   - Add relevant tags/dimensions to metrics (e.g., message type, success/failure status) to allow slicing data in dashboards.
+
+2. **Distributed Tracing:**
+   - Use `ActivitySource` and `Activity` to trace business logic, I/O operations, and background jobs.
+   - Start an `Activity` for any distinct unit of work. 
+   - Propagate trace contexts across process boundaries (e.g., when publishing/consuming from message brokers like RabbitMQ or making HTTP calls).
+   - Record essential contextual tags (using `Activity.SetTag`) and record exceptions using `Activity.AddEvent()`.
+
+3. **Semantic Conventions:**
+   - Follow standard OpenTelemetry Semantic Conventions for naming meters, instruments, and tags (e.g., prefer lowercase words separated by dots).
+
+4. **Implementation Design:**
+   - Do not couple business logic to specific vendor SDKs. Rely strictly on the `System.Diagnostics` abstractions.
+   - Inject `IMeterFactory` or define static `Meter` and `ActivitySource` instances cleanly per domain module.
