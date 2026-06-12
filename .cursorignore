@@ -1,0 +1,28 @@
+# Build output
+**/bin/
+**/obj/
+
+# NuGet packages and caches
+**/packages/
+**/.nuget/
+
+# IDE and tooling
+.vs/
+.idea/
+**/.vscode/
+
+# Logs and test artifacts
+**/logs/
+**/Log/
+**/TestResults/
+**/coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets and local environment
+.env
+.env.*
+**/appsettings.*.local.json
+**/secrets.json
