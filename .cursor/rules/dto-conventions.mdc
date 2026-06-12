@@ -1,0 +1,25 @@
+---
+description: DTO conventions for API data transfer objects
+globs: **/Dtos/**/*.cs
+alwaysApply: false
+---
+
+# DTO Conventions
+
+- DTOs are plain property bags for API contracts — no constructors, static factories, or mapping methods on the DTO class itself.
+- Do not set default values on DTO properties; defaults belong on entities or are supplied by callers/mappers at mapping time.
+
+```csharp
+// ❌ BAD
+public class StockDto
+{
+    public string Currency { get; set; } = "USD";
+    public static StockDto FromEntity(Stock stock) => new() { ... };
+}
+
+// ✅ GOOD
+public class StockDto
+{
+    public string Currency { get; set; }
+}
+```
