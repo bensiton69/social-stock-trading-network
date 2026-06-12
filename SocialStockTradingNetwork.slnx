@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="SocialStockTradingNetwork.Api/SocialStockTradingNetwork.Api.csproj" />
+  <Project Path="SocialStockTradingNetwork.AppHost/SocialStockTradingNetwork.AppHost.csproj" />
+  <Project Path="SocialStockTradingNetwork.ServiceDefaults/SocialStockTradingNetwork.ServiceDefaults.csproj" />
+</Solution>

@@ -18,7 +18,7 @@ internal sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbCon
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("Default") ?? FallbackConnectionString;
+        var connectionString = configuration.GetConnectionString("socialstocks") ?? FallbackConnectionString;
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(connectionString);
