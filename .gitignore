@@ -1,0 +1,58 @@
+## Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+coverage/
+*.coverage
+*.coveragexml
+
+## ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+## Secrets and local config
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.p12
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Environment
+.env
+.env.*
+!.env.example
+
+## Tooling
+*.swp
+*~
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
