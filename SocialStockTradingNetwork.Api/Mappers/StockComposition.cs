@@ -28,4 +28,7 @@ internal static class StockComposition
             IsTradable = stock.IsTradable,
             UpdatedAt = stock.UpdatedAt
         };
+
+    internal static IReadOnlyList<StockDto> ToDtoList(IReadOnlyList<Stock> stocks) =>
+        [.. stocks.Select(ToDto)];
 }

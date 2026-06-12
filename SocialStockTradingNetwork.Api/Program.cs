@@ -1,13 +1,16 @@
 using SocialStockTradingNetwork.Api.Endpoints;
+using SocialStockTradingNetwork.Api.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
-// When adding OpenTelemetry exporters, wire StocksTelemetry.SourceName as the meter and activity source:
+builder.Services.AddPersistence(builder.Configuration);
+
+// When adding OpenTelemetry exporters, wire the meter and activity sources:
 //   builder.Services.AddOpenTelemetry()
-//       .WithMetrics(m => m.AddMeter(StocksTelemetry.SourceName))
-//       .WithTracing(t => t.AddSource(StocksTelemetry.SourceName));
+//       .WithMetrics(m => m.AddMeter(StocksTelemetry.SourceName, PersistenceTelemetry.SourceName))
+//       .WithTracing(t => t.AddSource(StocksTelemetry.SourceName, PersistenceTelemetry.SourceName));
 
 var app = builder.Build();
 
