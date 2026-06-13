@@ -15,6 +15,9 @@ internal static class PersistenceServiceCollectionExtensions
 
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
+        services.AddHealthChecks()
+            .AddNpgSql(connectionString, name: "postgres", tags: ["ready"]);
+
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IStockRepository, StockRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
