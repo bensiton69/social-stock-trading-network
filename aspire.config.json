@@ -1,0 +1,13 @@
+{
+  "$schema": "https://aspire.dev/reference/cli/configuration/schema.json",
+  "appHost": {
+    "path": "SocialStockTradingNetwork.AppHost/SocialStockTradingNetwork.AppHost.csproj"
+  },
+  "profiles": {
+    "https": {
+      "environmentVariables": {
+        "ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS": "true"
+      }
+    }
+  }
+}
