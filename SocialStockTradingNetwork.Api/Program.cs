@@ -20,8 +20,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.MapDefaultEndpoints();
 app.MapStocksEndpoints();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "Social Stock Trading Network API v1");
+    });
+}
 
 app.Run();

@@ -1,19 +1,19 @@
-var builder = DistributedApplication.CreateBuilder(args);
-
-// Disable the Aspire Dashboard login token for local development.
-// The AppHost reads these keys and forwards them as env-vars to the
-// dashboard subprocess (DASHBOARD__FRONTEND__AUTHMODE etc.).
-builder.Configuration["Dashboard:Frontend:AuthMode"] = "Unsecured";
-builder.Configuration["Dashboard:Otlp:AuthMode"] = "Unsecured";
-
-var postgres = builder.AddPostgres("postgres")
-    .WithDataVolume()
-    .WithPgAdmin();
-
-var db = postgres.AddDatabase("socialstocks");
-
-builder.AddProject<Projects.SocialStockTradingNetwork_Api>("api")
-    .WithReference(db)
-    .WaitFor(db);
-
-builder.Build().Run();
+// Dashboard login is disabled via ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS
+// in Properties/launchSettings.json (and aspire.config.json profiles).
+// Setting Dashboard:AuthMode in code or appsettings.json is overridden by
+// the AppHost at startup and does not disable the login prompt.
+var builder = DistributedApplication.CreateBuilder(args);
+
+var postgresPassword = builder.AddParameter("postgres-password", "postgres", secret: true);
+
+var postgres = builder.AddPostgres("postgres", password: postgresPassword)
+    .WithDataVolume()
+    .WithPgAdmin();
+
+var db = postgres.AddDatabase("socialstocks");
+
+builder.AddProject<Projects.SocialStockTradingNetwork_Api>("api")
+    .WithReference(db, connectionName: "Default")
+    .WaitFor(db);
+
+builder.Build().Run();
