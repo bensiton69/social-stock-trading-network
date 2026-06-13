@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: social-stocks
+  labels:
+    app: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          # Replaced at deploy time with the ECR image URI (see deploy.sh).
+          image: REPLACE_WITH_ECR_IMAGE
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: ENABLE_HTTPS_REDIRECTION
+              value: "false"
+            # Single POC replica applies EF migrations on startup.
+            - name: RUN_MIGRATIONS
+              value: "true"
+            - name: ConnectionStrings__Default
+              valueFrom:
+                secretKeyRef:
+                  name: socialstocks-db
+                  key: connection-string
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /alive
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

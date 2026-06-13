@@ -89,21 +89,18 @@ public static class ServiceDefaultsExtensions
     }
 
     /// <summary>
-    /// Maps /health (full readiness) and /alive (liveness) endpoints.
-    /// Only exposed in Development; in production health checks are served via
-    /// the load-balancer / container runtime probe path.
+    /// Maps /health (full readiness, includes dependency checks) and /alive
+    /// (liveness only). Exposed in all environments so container/Kubernetes
+    /// probes can reach them in production as well as local dev.
     /// </summary>
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapHealthChecks("/health");
+        app.MapHealthChecks("/health");
 
-            app.MapHealthChecks("/alive", new HealthCheckOptions
-            {
-                Predicate = r => r.Tags.Contains("live")
-            });
-        }
+        app.MapHealthChecks("/alive", new HealthCheckOptions
+        {
+            Predicate = r => r.Tags.Contains("live")
+        });
 
         return app;
     }
